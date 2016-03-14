@@ -12,8 +12,9 @@ lot of time trying to enter the transaction manually.
    * https://eac.schwab.com/eac/myawards/eDocuments/taxForms.do?tabSource=statTab&linkSource=taxForms&psymbol=GOOGL
    * https://eac.schwab.com/eac/myawards/eDocuments/taxForms.do?tabSource=statTab&linkSource=taxForms&psymbol=GOOG
 
-2. For each PDF, select some text, do select all with cmd-A, the copy with cmd-C. Open a text
-   editor and paste the contents into a plain text file and save as something like `goog-1099b.txt`.
+2. For each PDF, select some of the contents, use cmd-A to select everything, the copy with cmd-C.
+   Open a text editor and paste the contents into a plain text file and save as something like
+   `goog-1099b.txt`.
 
 3. Run the Python script in this repository against the files. If you have two files, you should
    process them both at the same time:
@@ -35,7 +36,7 @@ lot of time trying to enter the transaction manually.
 5. Once you're on the page where you enter transactions, open the Developer Tools window
    (Settings -> More Tools). Click on the "Console" tab if it's not already selected.
 
-6. Copy the contents of the enter.js file in this repository, click your cursor into the console
+6. Copy the contents of the `enter.js` file in this repository, click your cursor into the console
    area of the browser, and paste. This won't take any action other than defining a bunch of
    functions.
 
@@ -47,8 +48,8 @@ lot of time trying to enter the transaction manually.
 
    `> addEntries()`
 
-   This will add more entries. Ideally you should have 24 entries
-   available and the button to add more should be gone. If not, manually push the add more
+   This will add more entries. Afterward you should ideally have 24 entries
+   available and the button to add more should be hidden. If not, manually push the add more
    entries button until it's gone. (I couldn't find the right delay amount to make this work
    automatically 100% of the time.)
 
@@ -61,13 +62,15 @@ lot of time trying to enter the transaction manually.
 
 10. *Very important!* Click in the first entry field and use the tab key to advance through every
     field in the form. Yes, it's annoying, but TurboTax will not recognize the entries otherwise.
-    This is a very good opportunity to double-check that everything was entered correctly.
+    This is a very good opportunity to double-check that everything was entered correctly versus
+    the original PDF.
 
 11. Click the Continue button.
 
 12. If you have more transactions, click Add More, and do the same process again but this time
-    use `enterValues(24, 24)`. Next time use `enterValues(48, 24)`. Etc. When you get to the end,
-    adjust the second value to the number you have remaining, otherwise you'll get an error.
+    use `enterValues(24, 24)`. Next time use `enterValues(48, 24)`. Keep going until all the
+    transactions are entered. When you get to the end, adjust the second value to the number you
+    have remaining, otherwise you'll get an error.
 
 13. Once all the short term transactions are completed, go back to step 7 and use the `long.json`
     file instead.
