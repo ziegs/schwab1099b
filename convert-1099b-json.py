@@ -5,7 +5,6 @@ See README.md for instructions on using this script.
 '''
 
 import sys
-from datetime import date
 import json
 
 verbose = False

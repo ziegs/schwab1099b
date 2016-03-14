@@ -1,4 +1,4 @@
-# schwab1099b
+# Schwab 1099-B Converter
 
 The purpose of these two scripts is to automate entering stock sales from the
 Schwab EAC 1099-B form into TurboTax Online.
@@ -18,7 +18,7 @@ lot of time trying to enter the transaction manually.
 3. Run the Python script in this repository against the files. If you have two files, you should
    process them both at the same time:
 
-       $ ./convert-1099b-json.py goog-1099b.txt googl-1099b.txt
+   `$ ./convert-1099b-json.py goog-1099b.txt googl-1099b.txt`
 
    Some totals will be printed out that you should compare to the original 1099-B forms to make
    sure all transactions were processed.
@@ -43,13 +43,21 @@ lot of time trying to enter the transaction manually.
    Paste it into the console window.
 
 8. Now the fun begins. You'll notice the form only has 3 entries available. In the console,
-   type `addEntries()`. This will add more entries. Ideally you should have 24 entries
+   type:
+
+   `> addEntries()`
+
+   This will add more entries. Ideally you should have 24 entries
    available and the button to add more should be gone. If not, manually push the add more
    entries button until it's gone. (I couldn't find the right delay amount to make this work
    automatically 100% of the time.)
 
-9. Now type in the console `enterValues(0, 24)` or if you have fewer than 24 transactions, use
-   that number. You should see all of your data entered automatically.
+9. Now type in the console:
+
+   `> enterValues(0, 24)`
+
+   Or if you have fewer than 24 transactions, use that number. You should see all of your data
+   entered automatically.
 
 10. *Very important!* Click in the first entry field and use the tab key to advance through every
     field in the form. Yes, it's annoying, but TurboTax will not recognize the entries otherwise.
