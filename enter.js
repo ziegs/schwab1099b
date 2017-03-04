@@ -4,74 +4,85 @@
  * See README.md for instructions.
  */
 
-function getInputName(num) {
-  var base36 = num.toString(36);
-  if (base36.length == 1)
-    base36 = "0" + base36;
-
-  return '_' + base36;
+function waitFor(millisecs) {
+  return new Promise(function(resolve, reject) {
+    window.setTimeout(function() { resolve(true); }, millisecs);
+  });
 }
 
-// Order of TurboTax fields in the form
-FIELDS = ['desc', 'acq', 'sale', 'proceeds', 'basis']
-
-function addEntries() {
-  var time = 0;
-  for (var c = 0; c < 21; c++) {
-    window.setTimeout(function() {
-      var e = document.getElementById('_00');
-      e.click();
-    }, time);
-    time += 500;
-  }
+function shortPause() {
+  return waitFor(1000);
 }
 
-function enterValues(start, max) {
-  var time = 0;
-
-  for (var line = 0; line < max; line++) {
-    for (var i = 0; i < 5; i++) {
-      var elt = document.getElementById('edt' + getInputName(line*6 + i));
-      var value = entries[line + start][FIELDS[i]];
-      window.setTimeout(function(e) {
-        e.focus();
-      }, time, elt);
-      time += 100;
-      window.setTimeout(function(e, v) {
-        e.value = v;
-      }, time, elt, value);
-      time += 100;
-    }
-    var wash = entries[line + start]['wash'];
-    if (wash) {
-      elt = document.getElementById('chk' + getInputName(line * 2));
-      window.setTimeout(function(e) {
-        e.click();
-      }, time, elt);
-      time += 100;
-      elt = document.getElementById('combo' + getInputName(line));
-      window.setTimeout(function(e) {
-        e.selectedIndex = 3;
-      }, time, elt);
-      time += 100;
-      elt = document.getElementById('edt' + getInputName(line*6 + 5));
-      window.setTimeout(function(e) {
-        e.focus();
-      }, time, elt);
-      time += 100;
-      window.setTimeout(function(e, v) {
-        e.value = v;
-      }, time, elt, wash);
-      time += 100;
-    }
-  }
-  window.setTimeout(function(e) {
-    alert("Done. Go to first entry and press TAB until the end. Then click Continue");
-  }, time);
+function longPause() {
+  return waitFor(6000);
 }
 
-// First 24:
-// enterValues(entries, 0, 24);
-// Next 24:
-// enterValues(entries, 24, 24);
-// Repeat until done.
+function click(eltId) {
+  return new Promise(function(resolve, reject) {
+    document.getElementById(eltId).click();
+    resolve(true);
+  });
+}
+
+function focus(eltId) {
+  return new Promise(function(resolve, reject) {
+    document.getElementById(eltId).focus();
+    resolve(true);
+  });
+}
+
+function enterData(eltId, value) {
+  return new Promise(function(resolve, reject) {
+    document.getElementById(eltId).value = value;
+    resolve(true);
+  });
+}
+
+function enterOneRow(data, haveMore) {
+  return longPause()
+      .then(click.bind(null, "txtblk_00"))
+      .then(shortPause)
+      .then(focus.bind(null, "edt_00"))
+      .then(shortPause)
+      .then(enterData.bind(null, "edt_00", data["desc"]))
+      .then(shortPause)
+      .then(focus.bind(null, "edt_01"))
+      .then(shortPause)
+      .then(enterData.bind(null, "edt_01", data["acq"]))
+      .then(shortPause)
+      .then(focus.bind(null, "edt_02"))
+      .then(shortPause)
+      .then(enterData.bind(null, "edt_02", data["sale"]))
+      .then(shortPause)
+      .then(focus.bind(null, "edt_03"))
+      .then(shortPause)
+      .then(enterData.bind(null, "edt_03", data["proceeds"]))
+      .then(shortPause)
+      .then(focus.bind(null, "edt_04"))
+      .then(shortPause)
+      .then(enterData.bind(null, "edt_04", data["basis"]))
+      .then(shortPause)
+      .then(focus.bind(null, "combo_00"))
+      .then(shortPause)
+      .then(enterData.bind(null, "combo_00", data["category"]))
+      .then(shortPause)
+      .then(focus.bind(null, "edt_00"))
+      .then(shortPause)
+      .then(click.bind(null, "Done_00"))
+      .then(longPause)
+      .then(click.bind(null, haveMore ? "txtblk_00_0" : "txtblk_01_0"))
+      .then(shortPause)
+      .then(click.bind(null, "Continue_00"))
+      .then(longPause);
+}
+
+function enterAll(entries) {
+  entries.reduce(function(prev, currEntry, index) {
+    return prev.then(function() {
+      return enterOneRow(currEntry, index + 1 < entries.length);
+    });
+  }, Promise.resolve()).then(function() {
+    console.log('All Done!');
+  });
+}

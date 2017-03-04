@@ -19,60 +19,46 @@ lot of time trying to enter the transaction manually.
 3. Run the Python script in this repository against the files. If you have two files, you should
    process them both at the same time:
 
-   `$ ./convert-1099b-json.py goog-1099b.txt googl-1099b.txt`
+   `$ ./convert-1099b-json.py goog-1099b.txt googl-1099b.txt > entries.json`
 
    Some totals will be printed out that you should compare to the original 1099-B forms to make
    sure all transactions were processed.
-   You will now have two files short.json containing all of your GOOG and GOOGL short-term
-   transactions (taxed as regular income), and long.json containing all of your long-term
-   transactions (taxed at a lower rate). The number of transactions of each type is also printed.
+   You will now a file entries.json containing all of your GOOG and GOOGL
+   transactions. The number of transactions of each type is also printed.
 
 4. The next part of the process takes part in the browser on turbotax.com. I used
    Google Chrome on MacOS. It should work with other browsers, but I didn't try it.
    Open the TurboTax site and navigate to the section for entering stock transactions.
-   A screen will present check boxes for box A, B, C, etc. Check box B for the short term
-   transactions, or box E for the long term.
+   Enter your instituion name ("Charles Schwab") and account number, and eventually you'll
+   arrive at a screen that says:
 
-5. Once you're on the page where you enter transactions, open the Developer Tools window
-   (Settings -> More Tools). Click on the "Console" tab if it's not already selected.
+   > Tell us about your Charles Schwab 1099-B
+   > * I'll enter one sale at a time
+   > * I'll enter a summary for each sales category
+   
+5. Once you're on the page at step 4, open the Developer Tools window (Settings
+   -> More Tools). Click on the "Console" tab if it's not already selected.
 
 6. Copy the contents of the `enter.js` file in this repository, click your cursor into the console
    area of the browser, and paste. This won't take any action other than defining a bunch of
    functions.
 
-7. Now do the same for the contents of the `short.json` file created above. Copy the contents.
+7. Now do the same for the contents of the `entries.json` file created above. Copy the contents.
    Paste it into the console window.
 
-8. Now the fun begins. You'll notice the form only has 3 entries available. In the console,
-   type:
+8. Now the fun begins. In the console, type:
 
-   `> addEntries()`
+   `> enterAll(entries)`
 
-   This will add more entries. Afterward you should ideally have 24 entries
-   available and the button to add more should be hidden. If not, manually push the add more
-   entries button until it's gone. (I couldn't find the right delay amount to make this work
-   automatically 100% of the time.)
+   *Very important!* Immediately after typing this, click somewhere in the TT page to give it focus
+   again. (Don't click on a link or a form entry; the best place to click is the empty gray
+   margins.) You only need to do it once at the beginning, before the script starts filling out the
+   entries.
 
-9. Now type in the console:
+9. Now sit back and watch the data get filled out. *Don't* switch tabs or windows. It's a good idea
+   to move your mouse every few minutes to keep your screen from going to sleep.
 
-   `> enterValues(0, 24)`
+10. You can always navigate back to the screen described in step 4 and re-enter the command from
+    step 8 if you need to add more entries.
 
-   Or if you have fewer than 24 transactions, use that number. You should see all of your data
-   entered automatically.
-
-10. *Very important!* Click in the first entry field and use the tab key to advance through every
-    field in the form. Yes, it's annoying, but TurboTax will not recognize the entries otherwise.
-    This is a very good opportunity to double-check that everything was entered correctly versus
-    the original PDF.
-
-11. Click the Continue button.
-
-12. If you have more transactions, click Add More, and do the same process again but this time
-    use `enterValues(24, 24)`. Next time use `enterValues(48, 24)`. Keep going until all the
-    transactions are entered. When you get to the end, adjust the second value to the number you
-    have remaining, otherwise you'll get an error.
-
-13. Once all the short term transactions are completed, go back to step 7 and use the `long.json`
-    file instead.
-
-14. That's it. Hopefully all of your transactions are now entered into TurboTax.
+11. That's it. Hopefully all of your transactions are now entered into TurboTax.
