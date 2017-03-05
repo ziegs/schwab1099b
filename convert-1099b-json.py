@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 '''Convert Schwab EAC 1099 to JSON format.
-
 See README.md for instructions on using this script.
 '''
 
@@ -24,14 +23,14 @@ total_num_records = 0
 def print_and_zero_totals():
   global total_num_records, total_shares, total_proceeds, total_basis, total_wash
 
-  print "********"
-  print "Total # records read: %d" % total_num_records
-  print 'Total shares: %d' % total_shares
-  print "Verify these totals with the summary of the last page of the Schwab Statement"
-  print "Total Proceeds: $%.2f" % total_proceeds
-  print "Total Basis: $%.2f" % total_basis
-  print "Total Wash: $%.2f" % total_wash
-  print
+  print >>sys.stderr, "********"
+  print >>sys.stderr, "Total # records read: %d" % total_num_records
+  print >>sys.stderr, 'Total shares: %d' % total_shares
+  print >>sys.stderr, "Verify these totals with the summary of the last page of the Schwab Statement"
+  print >>sys.stderr, "Total Proceeds: $%.2f" % total_proceeds
+  print >>sys.stderr, "Total Basis: $%.2f" % total_basis
+  print >>sys.stderr, "Total Wash: $%.2f" % total_wash
+  print >>sys.stderr
   total_num_records = 0
   total_shares = 0
   total_proceeds = 0
@@ -42,7 +41,7 @@ input_fns = sys.argv[1:]
 for fn in input_fns:
   with open(fn, 'r') as f:
     lines = [l.strip() for l in f.readlines()]
-    print "Read a total of %d lines from %s " % (len(lines), fn)
+    print >>sys.stderr, "Read a total of %d lines from %s " % (len(lines), fn)
 
     input_line = 0
     short_term = True
@@ -68,7 +67,7 @@ for fn in input_fns:
         break
 
       if len(lines) < input_line + 4:
-        #print 'WARNING: Trailing content at end of file: \n%s' % repr(lines[input_line:])
+        #print >>sys.stderr, 'WARNING: Trailing content at end of file: \n%s' % repr(lines[input_line:])
         break
 
       if not (lines[input_line].startswith('3825') or lines[input_line].startswith('0207')):
@@ -79,7 +78,7 @@ for fn in input_fns:
         continue
 
       if verbose:
-        print "Read CUSIP: %s" % lines[input_line]
+        print >>sys.stderr, "Read CUSIP: %s" % lines[input_line]
 
       transaction = {}
       #description, acq_date, sale_date, proceeds, basis, wash]
@@ -90,9 +89,9 @@ for fn in input_fns:
         sys.exit('ERROR: Parsing input line %d: %s' % (input_line+1, lines[input_line]))
 
       if verbose:
-        print "Next line: %s" % lines[input_line]
+        print >>sys.stderr, "Next line: %s" % lines[input_line]
 
-      quantity = int(parts[0])
+      quantity = int(float(parts[0]))
       total_shares += quantity
       symbol = parts[3]
       if (symbol != 'GOOG' and symbol != 'GOOGL') or quantity <= 0:
@@ -102,7 +101,7 @@ for fn in input_fns:
 
       input_line += 1
       if verbose:
-        print "Next line: %s" % lines[input_line]
+        print >>sys.stderr, "Next line: %s" % lines[input_line]
       parts = lines[input_line].split(' ')
       len(parts) == 3 or sys.exit('ERROR: Parsing input line %d: %s' % (input_line+1, lines[input_line]))
       (acq_date, proceeds, basis) = parts
@@ -127,11 +126,11 @@ for fn in input_fns:
 
       input_line += 1
       if verbose:
-        print "Next line: %s" % lines[input_line]
+        print >>sys.stderr, "Next line: %s" % lines[input_line]
       parts = lines[input_line].split(' ')
       len(parts) == 2 or (len(parts) == 3 and wash) or sys.exit('ERROR: Parsing input line %d: %s' % (input_line+1, lines[input_line]))
       sale_date = parts[0]
-      parts[1] == 'Gross' or sys.exit('ERROR: Expected to see GROSS line: %d' % (input_line+1))
+      parts[1] == 'GROSS' or sys.exit('ERROR: Expected to see GROSS line: %d' % (input_line+1))
       if wash:
         wash = parts[2]
         wash = float(wash.replace(',', ''))
@@ -140,17 +139,19 @@ for fn in input_fns:
       transaction['wash'] = wash
 
       if short_term:
+        transaction['category'] = '2'  # Box B - Short term noncovered
         short_sales.append(transaction)
       else:
+        transaction['category'] = '5'  # Box E - Long term noncovered
         long_sales.append(transaction)
 
       input_line += 1
 
       if verbose:
         if wash:
-          print "Read record: (symbol:%s,\tacq_date:%s,\tsale_date:%s,\tquantity:%d,\tproceeds:$%.2f,\tbasis:$%.2f,\twash:$%.2f)" % (symbol, acq_date, sale_date, quantity, proceeds, basis, wash)
+          print >>sys.stderr, "Read record: (symbol:%s,\tacq_date:%s,\tsale_date:%s,\tquantity:%d,\tproceeds:$%.2f,\tbasis:$%.2f,\twash:$%.2f)" % (symbol, acq_date, sale_date, quantity, proceeds, basis, wash)
         else:
-          print "Read record: (symbol:%s,\tacq_date:%s,\tsale_date:%s,\tquantity:%d,\tproceeds:$%.2f,\tbasis:$%.2f)" % (symbol, acq_date, sale_date, quantity, proceeds, basis)
+          print >>sys.stderr, "Read record: (symbol:%s,\tacq_date:%s,\tsale_date:%s,\tquantity:%d,\tproceeds:$%.2f,\tbasis:$%.2f)" % (symbol, acq_date, sale_date, quantity, proceeds, basis)
       total_num_records += 1
 
       total_proceeds += proceeds
@@ -160,12 +161,9 @@ for fn in input_fns:
 
     print_and_zero_totals()
 
-with open('short.json', 'w') as f:
-  f.write('entries = ')
-  json.dump(short_sales, f, indent=0, separators=(',', ':'))
-with open('long.json', 'w') as f:
-  f.write('entries = ')
-  json.dump(long_sales, f, indent=0, separators=(',', ':'))
+print 'entries = '
+json.dump(short_sales + long_sales, sys.stdout)
+print ''
 
-print '%d short term transaction processed' % len(short_sales)
-print '%d long term transaction processed' % len(long_sales)
+print >>sys.stderr, '%d short term transaction processed' % len(short_sales)
+print >>sys.stderr, '%d long term transaction processed' % len(long_sales)
