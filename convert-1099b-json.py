@@ -128,12 +128,19 @@ for fn in input_fns:
       if verbose:
         print >>sys.stderr, "Next line: %s" % lines[input_line]
       parts = lines[input_line].split(' ')
-      len(parts) == 2 or (len(parts) == 3 and wash) or sys.exit('ERROR: Parsing input line %d: %s' % (input_line+1, lines[input_line]))
-      sale_date = parts[0]
-      parts[1] == 'GROSS' or sys.exit('ERROR: Expected to see GROSS line: %d' % (input_line+1))
-      if wash:
-        wash = parts[2]
+      len(parts) == 2 or len(parts) == 1 or sys.exit('ERROR: Parsing input line %d: %s' % (input_line+1, lines[input_line]))
+      if len(parts) == 2:
+        sale_date = parts[0]
+        parts[1] == 'GROSS' or sys.exit('ERROR: Expected to see GROSS line: %d' % (input_line+1))
+      elif len(parts) == 1:
+        sale_date = parts[0]
+        input_line += 1
+        wash = lines[input_line]
         wash = float(wash.replace(',', ''))
+        input_line += 1
+        lines[input_line] == 'GROSS' or sys.exit('ERROR: Expected to see GROSS line: %d' % (input_line+1))
+      else:
+        sys.exit('ERROR: Parsing input line %d: %s' % (input_line+1, lines[input_line]))
 
       transaction['sale'] = sale_date
       transaction['wash'] = wash
